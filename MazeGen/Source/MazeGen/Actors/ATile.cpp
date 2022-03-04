@@ -186,7 +186,3 @@ void AATile::ToggleWallMeshDirection(EDirection Direction)
 		break;
 	}
 }
-
-void AATile::TestFunc()
-{
-}

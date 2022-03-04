@@ -52,38 +52,187 @@ void AAArchitect::FindActorsWithTag(TArray<AActor*>& OutActorArray, const FGamep
 void AAArchitect::GenerateMazeBluePrint()
 {
 	LevelTiles.Empty();
+	LevelInstructions.Empty(LevelSizeX * LevelSizeY);
 
-	for (int y = 0; y < LevelSizeY; y++) {
-		for (int x = 0; x < LevelSizeX; x++) {
+	//Populate instructions array
+	for (int x = 0; x < LevelSizeX * LevelSizeY; x++)
+	{
+		FMazeInfo* TileInfo = new FMazeInfo();
+		LevelInstructions.Add(TileInfo);
+	}
 
-			FMazeInfo* TileInfo = new FMazeInfo;
+	//configure base info + assign neighbors
+	int YCounter = 0;
+	int XCounter = 0;
+	for (int x = 0; x < LevelSizeX * LevelSizeY; x++)
+	{
+		FMazeInfo* TileInfo = LevelInstructions[x];
 
-			TileInfo->TileType = TileTypes[FMath::RandRange(0, TileTypes.Num() - 1)]->GetClass();
+		TileInfo->TileType = TileTypes[FMath::RandRange(0, TileTypes.Num() - 1)]->GetClass();
 
-			//AATile* test = Cast<AATile>();
+		AddNeighbors(TileInfo, LevelInstructions, LevelSizeX, LevelSizeY, x);
 
-			TileInfo->Pos = FVector(x, y, 0);
+		TileInfo->Pos = FVector(XCounter, YCounter, 0);
 
-			//Hardcode Testing
-			TileInfo->Walls.Add(EDirection::North);
-			TileInfo->Walls.Add(EDirection::South);
-
-			LevelInstructions.Add(TileInfo);
+		if ((YCounter % LevelSizeY) + 1 == LevelSizeY)
+		{
+			XCounter += 1;
+			YCounter = 0;
 		}
+		else
+		{
+			YCounter += 1;
+		}
+
+	}
+
+	//modify instructions to create maze
+	DesignMaze(LevelInstructions);
+
+}
+
+void AAArchitect::DesignMaze(TArray<FMazeInfo*> &InstructionSetOut)
+{
+	//TArray can act as a Stack ADS
+	TArray<FMazeInfo*> Stack;
+
+	struct ValidConnection
+	{
+		FMazeInfo* Neighbor;
+		EDirection Direction;
+	};
+
+	//Seed loop
+	Stack.Push(*InstructionSetOut.begin());
+	Stack.Top()->IsInMaze = true;
+
+	//create maze
+	while (Stack.Num() > 0)
+	{
+		FMazeInfo* InfoOut = Stack.Top();
+
+		//Get all the valid neighbors, put them in an array
+		TArray<ValidConnection*> ValidConnections;		
+		for (auto& Nbr : InfoOut->Neighbors)
+		{
+			if (Nbr.Value != nullptr)
+			{
+				if(!Nbr.Value->IsInMaze)
+				{
+					ValidConnection* NewConnection = new ValidConnection;
+					NewConnection->Neighbor = Nbr.Value;
+					NewConnection->Direction = Nbr.Key;
+					ValidConnections.Add(NewConnection);
+				}
+			}
+		}
+
+		//random pick from vaild connections
+		if (ValidConnections.Num() > 0)
+		{
+			int RandomNumber = FMath::RandRange(0, ValidConnections.Num() - 1);
+
+			ValidConnection* ChosenConnection = ValidConnections[RandomNumber];
+		
+			InfoOut->Connections.Add(ChosenConnection->Direction);
+			
+			//Add reverse connection to neighbor 
+			switch (ChosenConnection->Direction)
+			{
+			case EDirection::North:
+				ChosenConnection->Neighbor->Connections.Add(EDirection::South);
+				break;
+			case EDirection::East:
+				ChosenConnection->Neighbor->Connections.Add(EDirection::West);
+				break;
+			case EDirection::South:
+				ChosenConnection->Neighbor->Connections.Add(EDirection::North);
+				break;
+			case EDirection::West:
+				ChosenConnection->Neighbor->Connections.Add(EDirection::East);
+				break;
+			case EDirection::Default:
+				break;
+			default:
+				break;
+			}
+
+			ChosenConnection->Neighbor->IsInMaze = true;
+			Stack.Push(ChosenConnection->Neighbor);
+		}
+		//No other valid connections to be made
+		else
+		{
+			Stack.Pop();
+		}
+	}
+
+	//Add Walls for maze
+	for (FMazeInfo* Info : InstructionSetOut)
+	{
+		if (!Info->Connections.Contains(EDirection::North))
+		{
+			Info->Walls.Add(EDirection::North);
+		}
+		if (!Info->Connections.Contains(EDirection::East))
+		{
+			Info->Walls.Add(EDirection::East);
+		}
+		if (!Info->Connections.Contains(EDirection::South))
+		{
+			Info->Walls.Add(EDirection::South);
+		}
+		if (!Info->Connections.Contains(EDirection::West))
+		{
+			Info->Walls.Add(EDirection::West);
+		}
+	}
+
+
+}
+
+void AAArchitect::AddNeighbors(FMazeInfo* MazeInfoOut, TArray<FMazeInfo*> const& InstructionSet, int const &XSize, int const &YSize, int const &CurrentIndex)
+{
+	//Self Reminder: Unreal Axis are different
+	if(CurrentIndex - YSize >= 0)
+	{
+		MazeInfoOut->Neighbors.Add(EDirection::South, InstructionSet[CurrentIndex - YSize]);
+	}
+	else
+	{
+		MazeInfoOut->Neighbors.Add(EDirection::South, nullptr);
+	}
+
+	if (CurrentIndex + YSize < XSize * YSize)
+	{
+		MazeInfoOut->Neighbors.Add(EDirection::North, InstructionSet[CurrentIndex + YSize]);
+	}
+	else
+	{
+		MazeInfoOut->Neighbors.Add(EDirection::North, nullptr);
+	}
+
+	if ((CurrentIndex % YSize) + 1 < YSize)
+	{
+		MazeInfoOut->Neighbors.Add(EDirection::East, InstructionSet[CurrentIndex + 1]);
+	}
+	else
+	{
+		MazeInfoOut->Neighbors.Add(EDirection::East, nullptr);
+	}
+
+	if ((CurrentIndex % YSize) - 1 >= 0)
+	{
+		MazeInfoOut->Neighbors.Add(EDirection::West, InstructionSet[CurrentIndex - 1]);
+	}
+	else
+	{
+		MazeInfoOut->Neighbors.Add(EDirection::West, nullptr);
 	}
 }
 
 TArray<FMazeInfo*> AAArchitect::GetArchitectMazeBluprint()
 {
-	//Testing Implementation
-	//TArray<AATile*> TilesToBuild;
-
-	//for (auto It = LevelTiles.begin(); It != LevelTiles.end(); ++It)
-	//{
-	//	AATile* tile = Cast<AATile>(*It);
-	//	TilesToBuild.Add(tile);
-	//}
-
 	return LevelInstructions;
 }
 

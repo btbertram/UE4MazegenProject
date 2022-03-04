@@ -19,7 +19,7 @@ USTRUCT()
 	};
 
 UCLASS()
-class MAZEGEN_API AATile : public AActor, public IGameplayTagAssetInterface, public IITraversable
+class MAZEGEN_API AATile : public AActor, public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 
@@ -68,5 +68,5 @@ private:
 	UStaticMeshComponent* WestWall = nullptr;
 
 	// Inherited via IITraversable
-	virtual void TestFunc() override;
+	//virtual void TestFunc() override;
 };

@@ -47,6 +47,10 @@ public:
 	//Creates a new maze layout.
 	void GenerateMazeBluePrint();
 
+	void DesignMaze(TArray<FMazeInfo*>& InstructionSetOut);
+
+	void AddNeighbors(FMazeInfo* MazeInfoOut, TArray<FMazeInfo*> const& InstructionSet, int const& XSize, int const& YSize, int const& CurrentIndex);
+
 	TArray<FMazeInfo*> GetArchitectMazeBluprint();
 
 private:

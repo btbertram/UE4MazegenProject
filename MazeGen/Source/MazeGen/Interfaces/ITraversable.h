@@ -24,8 +24,7 @@ class MAZEGEN_API IITraversable
 public:
 
 	FVector Pos;
-
-	virtual void TestFunc() = 0;
+	//virtual void TestFunc() = 0;
 
 
 };
