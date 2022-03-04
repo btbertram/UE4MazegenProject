@@ -8,15 +8,12 @@
 #include "GameFramework/Actor.h"
 #include "AMazeBuilder.generated.h"
 
+/* An Actor class which builds and spawns a maze when placed in the level with an AArchitect. */
 UCLASS()
 class MAZEGEN_API AAMazeBuilder : public AActor
 {
 	GENERATED_BODY()
 	
-		//Notes:
-		//We can't start building until the Architect is finshed with its work.
-		//
-
 public:	
 	// Sets default values for this actor's properties
 	AAMazeBuilder();
@@ -29,22 +26,36 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	//Requests information from the Architect for building a maze.
+	// Gets information from the Architect for building a maze.
 	TArray<FMazeInfo*> GetMazeArchitectInstruction();
-
-	//Takes an Architecht Blueprint and uses it to create a maze.
+	
+	/**
+	* Takes an Architect Blueprint and uses it to create a maze.
+	* 
+	* @Param InstructionsForTiles	Instruction set from the Architect which details how tiles should be configured for a maze.	
+	*/
 	void PlaceMaze(const TArray<FMazeInfo*>& InstructionsForTiles);
 
-	//Places a single ATile actor in the world.
+	/**
+	* Spawns a single ATile actor in the world.
+	* 
+	* @Param Instructions	Configuration instructions for a single tile in a maze.
+	*/
 	void PlaceTile(const FMazeInfo*& Instructions);
 
-	//Manipulates an ATile's properties based on instructions from the Architect and prepares it to be placed in the world.
+	/*
+	* Manipulates an ATile's properties based on instructions from the Architect after it has been spawned into the world.
+	* 
+	* @Param *Tile	The tile to configure. 
+	* @Param *&Instructions		Configureation instructions for a single tile in a maze.	
+	*/
 	void ConfigureTile(AATile *Tile, const FMazeInfo*& Instructions);
 
 private:
 	UWorld* world;
 	FActorSpawnParameters TileSpawnParams;
 
+	//Delegate subscriber function to activate PlaceMaze
 	void BeginBuilding();
 
 

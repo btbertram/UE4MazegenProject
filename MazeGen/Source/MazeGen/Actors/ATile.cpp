@@ -24,24 +24,9 @@ AATile::AATile()
 void AATile::BeginPlay()
 {
 	Super::BeginPlay();
-	//UE_LOG(LogTemp, Warning, TEXT("Testing!"));
-	//RemoveWall(EDirection::North);
-	//AddWall(EDirection::North);
-	//AddWall(EDirection::South);
-	
-	//FGameplayTag::
-
-	//ToggleWallMeshDirection(EDirection::South);
-
-	//WallMesh->ToggleActive();
-	//WallMesh->ToggleVisibility();
-
-	//RemoveRefWall();
-
 
 }
 
-//Make this overrideable in BP so that specialty walls can be placed
 void AATile::AddWall(EDirection Direction) {
 	
 	FVector FloorMeshMin = FVector(0, 0, 0);

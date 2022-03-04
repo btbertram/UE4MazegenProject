@@ -18,6 +18,7 @@ USTRUCT()
 		FVector MaxBounds;
 	};
 
+/* An Actor class which represents a unit of the environment. */
 UCLASS()
 class MAZEGEN_API AATile : public AActor, public IGameplayTagAssetInterface
 {
@@ -29,16 +30,28 @@ public:
 
 	UPROPERTY(VisibleAnywhere)
 		FGameplayTagContainer TagsContainer;
-	//UPROPERTY()
-	//	FVector2D Pos;
+	/*
+	* Adds a new UStaticMeshComponent wall to the ATile.
+	* 
+	* @Param	The direction from the center of the tile the wall should block.
+	*/
 	UFUNCTION(BlueprintCallable)
 		void AddWall(EDirection Direction);
+	/*
+	* Removes a UStaticMeshComponent wall from the ATile.
+	*
+	* @Param	The direction from the center of the tile the wall should block.
+	*/
 	UFUNCTION(BlueprintCallable)
 		void RemoveWall(EDirection Direction);
+
+	//GameplayTagAssetInterface Function
 	UFUNCTION(BlueprintCallable, Category = GameplayTags)
 		void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const;
 
+	//Removes the wall reference UStaticMeshComponent from the tile.
 	void RemoveRefWall();
+	//Gets the bounds of a ATile's FloorMesh UStaticMeshComponent.
 	FMeshBounds GetTilePhysicalSize();
 
 
@@ -66,7 +79,4 @@ private:
 	UStaticMeshComponent* EastWall = nullptr;
 	UStaticMeshComponent* SouthWall = nullptr;
 	UStaticMeshComponent* WestWall = nullptr;
-
-	// Inherited via IITraversable
-	//virtual void TestFunc() override;
 };

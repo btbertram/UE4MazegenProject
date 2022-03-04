@@ -3,6 +3,7 @@
 #include "EDirection.h"
 #include "FMazeInfo.generated.h"
 
+/* A Struct which stores information for building a single tile in a maze. */
 USTRUCT()
 struct FMazeInfo
 {

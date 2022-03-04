@@ -18,7 +18,6 @@ void AAArchitect::BeginPlay()
 	world = GEngine->GetWorldFromContextObjectChecked(this);
 	FindActorsWithTag(TileTypes, FGameplayTag::RequestGameplayTag(FName("Generation.Maze.Tile")));
 	GenerateMazeBluePrint();
-	//ArchitectCompleted.Broadcast();
 }
 
 // Called every frame
@@ -26,6 +25,11 @@ void AAArchitect::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+TArray<FMazeInfo*> AAArchitect::GetArchitectMazeBluprint()
+{
+	return LevelInstructions;
 }
 
 void AAArchitect::FindActorsWithTag(TArray<AActor*>& OutActorArray, const FGameplayTag& SearchTag)
@@ -51,7 +55,6 @@ void AAArchitect::FindActorsWithTag(TArray<AActor*>& OutActorArray, const FGamep
 
 void AAArchitect::GenerateMazeBluePrint()
 {
-	LevelTiles.Empty();
 	LevelInstructions.Empty(LevelSizeX * LevelSizeY);
 
 	//Populate instructions array
@@ -68,6 +71,7 @@ void AAArchitect::GenerateMazeBluePrint()
 	{
 		FMazeInfo* TileInfo = LevelInstructions[x];
 
+		//Randomly assign tile type from 
 		TileInfo->TileType = TileTypes[FMath::RandRange(0, TileTypes.Num() - 1)]->GetClass();
 
 		AddNeighbors(TileInfo, LevelInstructions, LevelSizeX, LevelSizeY, x);
@@ -86,9 +90,49 @@ void AAArchitect::GenerateMazeBluePrint()
 
 	}
 
-	//modify instructions to create maze
+	//modify instructions outline to create maze
 	DesignMaze(LevelInstructions);
 
+}
+
+void AAArchitect::AddNeighbors(FMazeInfo* MazeInfoOut, TArray<FMazeInfo*> const& InstructionSet, int const& XSize, int const& YSize, int const& CurrentIndex)
+{
+	//Self Reminder: Unreal Axis are aligned X fwd, Y right, Z up
+	if (CurrentIndex - YSize >= 0)
+	{
+		MazeInfoOut->Neighbors.Add(EDirection::South, InstructionSet[CurrentIndex - YSize]);
+	}
+	else
+	{
+		MazeInfoOut->Neighbors.Add(EDirection::South, nullptr);
+	}
+
+	if (CurrentIndex + YSize < XSize * YSize)
+	{
+		MazeInfoOut->Neighbors.Add(EDirection::North, InstructionSet[CurrentIndex + YSize]);
+	}
+	else
+	{
+		MazeInfoOut->Neighbors.Add(EDirection::North, nullptr);
+	}
+
+	if ((CurrentIndex % YSize) + 1 < YSize)
+	{
+		MazeInfoOut->Neighbors.Add(EDirection::East, InstructionSet[CurrentIndex + 1]);
+	}
+	else
+	{
+		MazeInfoOut->Neighbors.Add(EDirection::East, nullptr);
+	}
+
+	if ((CurrentIndex % YSize) - 1 >= 0)
+	{
+		MazeInfoOut->Neighbors.Add(EDirection::West, InstructionSet[CurrentIndex - 1]);
+	}
+	else
+	{
+		MazeInfoOut->Neighbors.Add(EDirection::West, nullptr);
+	}
 }
 
 void AAArchitect::DesignMaze(TArray<FMazeInfo*> &InstructionSetOut)
@@ -187,52 +231,4 @@ void AAArchitect::DesignMaze(TArray<FMazeInfo*> &InstructionSetOut)
 			Info->Walls.Add(EDirection::West);
 		}
 	}
-
-
 }
-
-void AAArchitect::AddNeighbors(FMazeInfo* MazeInfoOut, TArray<FMazeInfo*> const& InstructionSet, int const &XSize, int const &YSize, int const &CurrentIndex)
-{
-	//Self Reminder: Unreal Axis are different
-	if(CurrentIndex - YSize >= 0)
-	{
-		MazeInfoOut->Neighbors.Add(EDirection::South, InstructionSet[CurrentIndex - YSize]);
-	}
-	else
-	{
-		MazeInfoOut->Neighbors.Add(EDirection::South, nullptr);
-	}
-
-	if (CurrentIndex + YSize < XSize * YSize)
-	{
-		MazeInfoOut->Neighbors.Add(EDirection::North, InstructionSet[CurrentIndex + YSize]);
-	}
-	else
-	{
-		MazeInfoOut->Neighbors.Add(EDirection::North, nullptr);
-	}
-
-	if ((CurrentIndex % YSize) + 1 < YSize)
-	{
-		MazeInfoOut->Neighbors.Add(EDirection::East, InstructionSet[CurrentIndex + 1]);
-	}
-	else
-	{
-		MazeInfoOut->Neighbors.Add(EDirection::East, nullptr);
-	}
-
-	if ((CurrentIndex % YSize) - 1 >= 0)
-	{
-		MazeInfoOut->Neighbors.Add(EDirection::West, InstructionSet[CurrentIndex - 1]);
-	}
-	else
-	{
-		MazeInfoOut->Neighbors.Add(EDirection::West, nullptr);
-	}
-}
-
-TArray<FMazeInfo*> AAArchitect::GetArchitectMazeBluprint()
-{
-	return LevelInstructions;
-}
-
