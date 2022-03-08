@@ -214,21 +214,63 @@ void AAArchitect::DesignMaze(TArray<FMazeInfo*> &InstructionSetOut)
 	//Add Walls for maze
 	for (FMazeInfo* Info : InstructionSetOut)
 	{
-		if (!Info->Connections.Contains(EDirection::North))
+		if (!Info->Connections.Contains(EDirection::North)) 
 		{
-			Info->Walls.Add(EDirection::North);
-		}
+			if (Info->Neighbors[EDirection::North] != nullptr)
+			{
+				if(!Info->Neighbors[EDirection::North]->Walls.Contains(EDirection::South))
+				{
+					Info->Walls.Add(EDirection::North);
+				}
+			}
+			else
+			{
+				Info->Walls.Add(EDirection::North);
+			}
+		}				
+
 		if (!Info->Connections.Contains(EDirection::East))
 		{
-			Info->Walls.Add(EDirection::East);
+			if(Info->Neighbors[EDirection::East] != nullptr)
+			{
+				if (!Info->Neighbors[EDirection::East]->Walls.Contains(EDirection::West))
+				{
+					Info->Walls.Add(EDirection::East);
+				}
+			}
+			else
+			{
+				Info->Walls.Add(EDirection::East);
+			}
 		}
 		if (!Info->Connections.Contains(EDirection::South))
 		{
-			Info->Walls.Add(EDirection::South);
+			if (Info->Neighbors[EDirection::South] != nullptr)
+			{
+				if (!Info->Neighbors[EDirection::South]->Walls.Contains(EDirection::North))
+				{
+					Info->Walls.Add(EDirection::South);
+				}
+			}
+			else
+			{
+				Info->Walls.Add(EDirection::South);
+			}
+
 		}
 		if (!Info->Connections.Contains(EDirection::West))
 		{
-			Info->Walls.Add(EDirection::West);
+			if (Info->Neighbors[EDirection::West] != nullptr)
+			{
+				if (!Info->Neighbors[EDirection::West]->Walls.Contains(EDirection::East))
+				{
+					Info->Walls.Add(EDirection::West);
+				}
+			}
+			else
+			{
+				Info->Walls.Add(EDirection::West);
+			}
 		}
 	}
 }
